@@ -1,0 +1,7 @@
+# langchain
+langchain==0.3.25
+langchain-community==0.3.25
+duckduckgo-search==8.0.4
+
+# llm
+ollama==0.5.1
