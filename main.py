@@ -1,17 +1,34 @@
-from langchain.agents import initialize_agent, AgentType
-from langchain_community.llms import Ollama
-from langchain_community.tools import DuckDuckGoSearchRun
+import json
+import sys
+import agent.master
 
-llm = Ollama(model="gemma3:4b")
+def main():
+  """Main function to run the agent with a task from command line arguments."""
+  try:
+    request = json.loads(sys.argv[1])
 
-tools = [DuckDuckGoSearchRun()]
+    master_agent = agent.master.wake_up()
+    
+    # Execute the task and get the response
+    response = master_agent.invoke({"input": request['task']})
+    
+    # Extract the output from the response
+    if isinstance(response, dict):
+        if 'output' in response:
+            result = {"response": response['output']}
+        elif 'result' in response:
+            result = {"response": response['result']}
+        else:
+            # Try to find any string value in the response
+            result = {"response": str(response)}
+    else:
+        result = {"response": str(response)}
 
-agent = initialize_agent(
-    tools,
-    llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True
-)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
-result = agent.invoke("明日の天気は？")
-print(result)
+  except Exception as e:
+      print(json.dumps({"error": f"An error occurred: {str(e)}"}))
+      sys.exit(1)
+
+if __name__ == "__main__":
+    main()
